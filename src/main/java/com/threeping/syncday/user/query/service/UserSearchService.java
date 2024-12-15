@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface UserSearchService {
     List<UserSearchResponse> searchUser(String keyword);
+
+    List<UserSearchResponse> getAllUsers();
 }

@@ -15,4 +15,5 @@ public interface MeetingroomReservationMapper {
 
     List<MeetingroomReservation> selectMeetingroomReservationsByPlace(@Param("meetingRoomPlace") String meetingRoomPlace);
 
+    List<MeetingroomReservation> selectMeetingroomReservationById(@Param("scheduleId") Long scheduleId);
 }

@@ -1,5 +1,6 @@
 package com.threeping.syncday.card.command.aggregate.entity;
 
+import com.threeping.syncday.card.query.config.CardEntityListener;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -7,6 +8,7 @@ import java.sql.Timestamp;
 
 @Data
 @Entity
+@EntityListeners(CardEntityListener.class)
 @Table(name="tbl_card")
 public class Card {
     @Id

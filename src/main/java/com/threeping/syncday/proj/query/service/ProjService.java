@@ -12,5 +12,4 @@ public interface ProjService {
 
     ProjDTO getProjById(Long projId);
 
-    List<ProjAndWorkspaceDTO> getProjInfosByUserId(Long userId);
 }

@@ -31,26 +31,20 @@ public class ScheduleDetailDTO {
     @JsonProperty("public_status")
     PublicStatus publicStatus;
 
-    @JsonProperty("schedule_repeat_id")
-    Long scheduleRepeatId;
-
-    @JsonProperty("repeat_order")
-    Long repeatOrder;
-
     @JsonProperty("meeting_status")
     MeetingStatus meetingStatus;
 
     @JsonProperty("meetingroom_id")
     Long meetingroomId;
 
-    @JsonProperty("user_id")
-    Long userId;
+    @JsonProperty("owner_user_id")
+    Long ownerUserId;
 
-    @JsonProperty("username")
-    String username;
+    @JsonProperty("owner_username")
+    String ownerUsername;
 
-    @JsonProperty("notification_time")
-    Timestamp notificationTime;
+    @JsonProperty("my_notification_time")
+    Timestamp myNotificationTime;
 
     // 사용자 정보 리스트
     @JsonProperty("user_info")

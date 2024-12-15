@@ -1,6 +1,7 @@
 package com.threeping.syncday.schedule.command.application.controller;
 
 import com.threeping.syncday.common.ResponseDTO;
+import com.threeping.syncday.schedule.command.Infrastructure.InfraScheduleServiceImpl;
 import com.threeping.syncday.schedule.command.aggregate.dto.ScheduleDTO;
 import com.threeping.syncday.schedule.command.application.service.AppScheduleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @RestController
 @RequestMapping("/api/schedule")
-public class AppScheduleController {
+public class  AppScheduleController {
     private final AppScheduleService appScheduleService;
 
     @Autowired
@@ -35,7 +36,11 @@ public class AppScheduleController {
     )
     @PostMapping("")
     public ResponseDTO<?> createSchedule(@RequestBody ScheduleDTO newSchedule) {
-        return ResponseDTO.ok(appScheduleService.addSchedule(newSchedule));
+        ScheduleDTO createdScheduleDTO = appScheduleService.addSchedule(newSchedule);
+        log.info("생성된 스케줄{}",createdScheduleDTO);
+        appScheduleService.sendMailToParticipants(createdScheduleDTO);
+        return ResponseDTO.ok(createdScheduleDTO);
+
     }
 
     @Operation(summary = "일정 수정",

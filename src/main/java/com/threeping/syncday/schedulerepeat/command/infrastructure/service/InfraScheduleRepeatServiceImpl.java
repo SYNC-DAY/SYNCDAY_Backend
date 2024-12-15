@@ -83,8 +83,6 @@ public class InfraScheduleRepeatServiceImpl implements InfraScheduleRepeatServic
         scheduleDTO.setEndTime(scheduleDuration.end());
         scheduleDTO.setUpdateTime(new Timestamp(System.currentTimeMillis()));
         scheduleDTO.setPublicStatus(createRepeatedScheduleDTO.getPublicStatus());
-        scheduleDTO.setScheduleRepeatId(createRepeatedScheduleDTO.getScheduleRepeatId());
-        scheduleDTO.setRepeatOrder(repeatOrder);
         scheduleDTO.setMeetingStatus(createRepeatedScheduleDTO.getMeetingStatus());
         scheduleDTO.setAttendeeIds(createRepeatedScheduleDTO.getParticipants());
         return scheduleDTO;

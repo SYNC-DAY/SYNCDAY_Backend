@@ -105,6 +105,7 @@ public class AppScheduleParticipantServiceImpl implements AppScheduleParticipant
     // 참여 상태 수정
     @Override
     public ResponseScheduleParticipantDTO updateUserScheduleStatus(ScheduleParticipantStatusDTO newScheduleParticipantStatus) {
+        log.info("newScheduleParticipantsDTO: {}",newScheduleParticipantStatus);
         ScheduleParticipant currentParticipant = scheduleParticipantRepository.findByScheduleIdAndUserId(
                 newScheduleParticipantStatus.getScheduleId(), newScheduleParticipantStatus.getUserId()
         );

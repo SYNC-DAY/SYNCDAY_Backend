@@ -21,4 +21,10 @@ public class ProjMemberDTO {
     @JsonProperty("proj_id")
     private Long projId;
 
+    @JsonProperty("email")
+    private String email;
+
+    @JsonProperty("username")
+    private String userName;
+
 }

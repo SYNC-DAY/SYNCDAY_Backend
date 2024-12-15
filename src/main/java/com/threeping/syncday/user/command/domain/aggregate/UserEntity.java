@@ -47,4 +47,5 @@ public class UserEntity {
 
     @Column(name = "last_activated_at")
     private Timestamp lastAccessTime;
-}
+
+ }

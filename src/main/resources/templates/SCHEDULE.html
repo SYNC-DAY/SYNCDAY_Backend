@@ -1,73 +1,157 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="kr">
 <head>
+    <meta charset="UTF-8">
     <title>일정 참여 요청 알림</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background-color: #FF9D85;
+            color: white;
+            padding: 16px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .content {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .content h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .content p {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .details-table th, .details-table td {
+            padding: 12px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        .details-table th {
+            background-color: #f3f4f6;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .details-table td {
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .buttons {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .buttons a {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 0 10px;
+            text-decoration: none;
+            border-radius: 24px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .accept-button {
+            background-color: #FE5D86;
+            cursor: pointer;
+        }
+
+        .decline-button {
+            background-color: #646464;
+            cursor: pointer;
+        }
+
+        .footer {
+            font-size: 12px;
+            color: #777;
+            text-align: center;
+            padding: 16px;
+            background-color: #f3f4f6;
+        }
+    </style>
 </head>
-<body style="font-family: Arial, sans-serif; color: #333; background: linear-gradient(135deg, #fcb69f, #ff8177); padding: 20px; text-align: center;">
+<body>
+<div class="email-container">
+    <!-- Header -->
+    <div class="header">
+        SYNCDAY
+    </div>
 
-<!-- Header with SYNDAY logo -->
-<div style="font-size: 24px; font-weight: bold; color: #ffffff; padding: 10px 0;">
-    SYNCDAY
-</div>
+    <!-- Content -->
+    <div class="content">
+        <h2>일정 참여 요청</h2>
+        <p>
+            <strong th:text="${sender}">발신자</strong>님이
+            <strong th:text="${title}">일정명</strong> 일정에 참여를 요청하셨습니다.
+        </p>
 
-<!-- Notification Container -->
-<div style="max-width: 600px; margin: 20px auto; background-color: rgba(255, 255, 255, 0.8); border-radius: 12px; overflow: hidden; padding: 20px; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);">
+        <!-- Details Table -->
+        <table class="details-table">
+            <tr>
+                <th>일정명</th>
+                <td th:text="${title}">일정명</td>
+            </tr>
+            <tr>
+                <th>발신자</th>
+                <td th:text="${sender}">발신자</td>
+            </tr>
+            <tr>
+                <th>일시</th>
+                <td th:text="${date}">일시</td>
+            </tr>
+        </table>
 
-    <!-- Notification Title -->
-    <h2 style="color: #ff8177; margin: 0 0 10px;">일정 참여 요청 알림</h2>
-    <p style="color: #555; font-size: 16px;">
-        <strong th:text="${sender}">발신자</strong>님이 <strong th:text="${title}">일정명</strong> 일정에 참여를 요청하셨습니다.
-    </p>
+        <!-- Action Buttons -->
+        <div class="buttons">
+            <a
+                    th:href="@{'https://www.syncday.me/invitation/mail-link?scheduleId=' + ${scheduleId} + '&status=ATTEND'}"
+                    class="accept-button"> 참석
+            </a>
+            <a
+                    th:href="@{'http://www.syncday.me/invitation/mail-link?scheduleId=' + ${scheduleId} + '&status=ABSENT'}"
+                    class="decline-button"> 불참
+            </a>
+        </div>
+    </div>
 
-    <!-- Table with Event Details -->
-    <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; color: #333;">
-        <tr style="background-color: #ffe6e1;">
-            <td style="padding: 10px; text-align: left; font-weight: bold;">일정명</td>
-            <td style="padding: 10px; text-align: right;" th:text="${title}">일정명</td>
-        </tr>
-        <tr style="background-color: #ffd1cc;">
-            <td style="padding: 10px; text-align: left; font-weight: bold;">발신자</td>
-            <td style="padding: 10px; text-align: right;" th:text="${sender}">발신자</td>
-        </tr>
-        <tr style="background-color: #ffe6e1;">
-            <td style="padding: 10px; text-align: left; font-weight: bold;">일시</td>
-            <td style="padding: 10px; text-align: right;" th:text="${date}">날짜</td>
-        </tr>
-        <tr style="background-color: #ffd1cc;">
-            <td style="padding: 10px; text-align: left; font-weight: bold;">위치</td>
-            <td style="padding: 10px; text-align: right;" th:text="${location}">위치</td>
-        </tr>
-    </table>
-
-    <!-- Buttons -->
-    <div style="margin-top: 20px;">
-        <a href="http://localhost:5000/api/accept" style="
-                display: inline-block;
-                padding: 12px 24px;
-                margin: 0 5px;
-                color: #ffffff;
-                background-color: #ff8177;
-                text-decoration: none;
-                border-radius: 24px;
-                font-size: 16px;
-                font-weight: bold;
-                box-shadow: 0px 4px 8px rgba(255, 129, 119, 0.3);">
-            참여 가능
-        </a>
-
-        <a href="http://localhost:5000/api/decline" style="
-                display: inline-block;
-                padding: 12px 24px;
-                margin: 0 5px;
-                color: #ffffff;
-                background-color: #ffd1cc;
-                text-decoration: none;
-                border-radius: 24px;
-                font-size: 16px;
-                font-weight: bold;
-                box-shadow: 0px 4px 8px rgba(255, 209, 204, 0.3);">
-            참여 불가
-        </a>
+    <!-- Footer -->
+    <div class="footer">
+        이 메일은 SYNDAY 시스템에 의해 자동 발송되었습니다.
     </div>
 </div>
 </body>

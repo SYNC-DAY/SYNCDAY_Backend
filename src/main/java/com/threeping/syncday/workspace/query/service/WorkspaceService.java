@@ -7,7 +7,7 @@ import com.threeping.syncday.workspace.query.aggregate.WorkspaceInfoDTO;
 import java.util.List;
 
 public interface WorkspaceService {
-    List<com.threeping. syncday.workspace.query.aggregate.WorkspaceDTO> getAllWorkspaces();
+    List<WorkspaceDTO> getAllWorkspaces();
 
     List<WorkspaceDTO> getWorkspacesByProjId(Long projId);
 

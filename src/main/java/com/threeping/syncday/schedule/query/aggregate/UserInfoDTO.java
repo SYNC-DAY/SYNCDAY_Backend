@@ -18,4 +18,7 @@ public class UserInfoDTO {
 
     @JsonProperty("participation_status")
     String participationStatus;
+
+    @JsonProperty("notification_time")
+    String notificationTime;
 }

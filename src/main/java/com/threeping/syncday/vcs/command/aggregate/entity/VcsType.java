@@ -5,4 +5,3 @@ public enum VcsType {
     GITLAB,
     BITBUCKET
 }
-

@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -106,5 +105,10 @@ public class ScheduleController {
     public ResponseDTO<?> getMyDetailSchedule(@RequestParam Long userId,
                                               @PathVariable Long scheduleId) {
         return ResponseDTO.ok(scheduleService.getMyDetailSchedulesByUserIdAndScheduleId(userId, scheduleId));
+    }
+
+    @GetMapping("/my/today")
+    public ResponseDTO<?> getMyTodaySchedule(@RequestParam Long userId){
+        return ResponseDTO.ok(scheduleService.getMyTodaySchedule(userId));
     }
 }

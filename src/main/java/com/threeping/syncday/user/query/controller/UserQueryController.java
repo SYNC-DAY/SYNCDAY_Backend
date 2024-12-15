@@ -2,6 +2,8 @@ package com.threeping.syncday.user.query.controller;
 
 import com.threeping.syncday.common.ResponseDTO;
 import com.threeping.syncday.user.command.application.dto.UserDTO;
+import com.threeping.syncday.user.command.domain.aggregate.UserEntity;
+import com.threeping.syncday.user.command.domain.repository.UserRepository;
 import com.threeping.syncday.user.command.domain.vo.ResponseNormalLoginVO;
 import com.threeping.syncday.user.query.dto.UserSearchResponse;
 import com.threeping.syncday.user.query.service.UserQueryService;
@@ -19,18 +21,22 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserQueryController {
 
     private final UserQueryService userService;
     private final UserSearchService userSearchService;
+    private final UserRepository userRepository;
 
     @Autowired
     public UserQueryController(UserQueryService userService,
-                               UserSearchService userSearchService) {
+                               UserSearchService userSearchService, UserRepository userRepository) {
         this.userService = userService;
         this.userSearchService = userSearchService;
+        this.userRepository = userRepository;
     }
 
     @Operation(summary = "Health Check",
@@ -125,5 +131,10 @@ public class UserQueryController {
     @GetMapping("/{userId}")
     public ResponseDTO<?> findUserById(@PathVariable Long userId){
         return ResponseDTO.ok(userService.findById(userId));
+    }
+
+    @GetMapping("/select")
+    public ResponseDTO<?> getAllUsers() {
+        return ResponseDTO.ok(userSearchService.getAllUsers());
     }
 }

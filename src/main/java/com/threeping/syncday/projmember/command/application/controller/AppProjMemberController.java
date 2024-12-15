@@ -1,11 +1,14 @@
 package com.threeping.syncday.projmember.command.application.controller;
 
 import com.threeping.syncday.common.ResponseDTO;
-import com.threeping.syncday.projmember.command.aggregate.entity.vo.ProjBookmarkVO;
+import com.threeping.syncday.projmember.command.aggregate.entity.UpdateProjectMemberReq;
+import com.threeping.syncday.projmember.command.aggregate.vo.UpdateProjRequest;
+import com.threeping.syncday.projmember.command.aggregate.vo.UpdateWorkspaceRequest;
 import com.threeping.syncday.projmember.command.application.service.AppProjMemberService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
+@Slf4j
 @RestController
 @RequestMapping("/api/proj-members")
 public class AppProjMemberController {
@@ -17,14 +20,38 @@ public class AppProjMemberController {
         this.appProjMemberService = appProjMemberService;
     }
 
-    @PostMapping("/bookmark")
-    public ResponseDTO<?> addProjBookmark(@RequestParam Long userId, @RequestParam Long projId){
-        return ResponseDTO.ok(appProjMemberService.addProjBookmark(userId, projId));
+    @PostMapping("/projs")
+    public ResponseDTO<?> createProj(@RequestBody UpdateProjRequest req){
+        return ResponseDTO.ok(appProjMemberService.addProj(req));
     }
 
-    @DeleteMapping("/bookmark")
-    public ResponseDTO<?> deleteProjBookmark(@RequestParam Long userId, @RequestParam Long projId){
-        return ResponseDTO.ok(appProjMemberService.removeProjBookmark(userId, projId));
+    @PutMapping("/projs")
+    public ResponseDTO<?> updateProj(@RequestBody UpdateProjRequest req){
+        log.info("req: {}", req);
+        return ResponseDTO.ok(appProjMemberService.updateProj(req));
+    }
+    @PutMapping("/bookmark")
+    public ResponseDTO<?> updateProjBookmark(@RequestParam Long projMemberId) {
+        log.info("projMemberId: {}", projMemberId);
+
+        return ResponseDTO.ok(appProjMemberService.updateProjBookmark(projMemberId));
 
     }
+
+    @PutMapping("/workspaces")
+    public ResponseDTO<?> updateWorkspace(@RequestBody UpdateWorkspaceRequest updateWorkspaceRequest){
+        log.info("updateWorkspaceRequest: {}", updateWorkspaceRequest);
+        return ResponseDTO.ok(appProjMemberService.updateWorkspace(updateWorkspaceRequest));
+    }
+
+    @PostMapping("/")
+    public ResponseDTO<?> createProjectMember(@RequestBody UpdateProjectMemberReq updateProjectMemberReq){
+        return ResponseDTO.ok(appProjMemberService.addProjectMember(updateProjectMemberReq));
+    }
+
+    @DeleteMapping("/")
+    public ResponseDTO<?> deleteProjectMember(@RequestBody UpdateProjectMemberReq updateProjectMemberReq){
+        return ResponseDTO.ok(appProjMemberService.removeProjMember(updateProjectMemberReq));
+    }
+
 }

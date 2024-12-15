@@ -11,4 +11,6 @@ public interface MeetingroomReservationService {
     List<MeetingroomReservationDTO> getMeetingroomReservationsByRoomId(Long meetingRoomId);
 
     List<MeetingroomReservationDTO> getMeetingroomReservationsByPlace(String meetingRoomPlace);
+
+    List<MeetingroomReservationDTO> getMeetingroomReservationById(Long scheduleId);
 }

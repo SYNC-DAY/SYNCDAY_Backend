@@ -2,7 +2,7 @@ package com.threeping.syncday.proj.command.domain.service;
 
 import com.threeping.syncday.common.exception.CommonException;
 import com.threeping.syncday.common.exception.ErrorCode;
-import com.threeping.syncday.proj.command.aggregate.vo.ProjVO;
+import com.threeping.syncday.projmember.command.aggregate.vo.UpdateProjResponse;
 import com.threeping.syncday.proj.command.aggregate.entity.Proj;
 import com.threeping.syncday.proj.command.domain.repository.ProjRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +21,8 @@ public class DomainProjServiceImpl implements DomainProjService {
     }
 
     @Override
-    public Boolean isValidMofificationRequest(ProjVO modifyProjVO) {
-        Proj foundProj = projRepository.findByProjId(modifyProjVO.getProjId());
+    public Boolean isValidMofificationRequest(UpdateProjResponse modifyUpdateProjResponse) {
+        Proj foundProj = projRepository.findByProjId(modifyUpdateProjResponse.projId());
         log.info("foundProj: {}", foundProj);
 
         // 프로젝트가 없는 경우

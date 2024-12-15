@@ -9,6 +9,44 @@ import java.util.List;
 
 @Repository
 public interface ProjSearchRepository extends ElasticsearchRepository<ProjectSearchDocument, Long> {
-    @Query("{\"bool\": {\"should\": [{\"match\": {\"projectName\": \"?0\"}}, {\"match\": {\"vcsType\": \"?0\"}}]}}")
+    @Query("{" +
+            "  \"bool\": {" +
+            "    \"should\": [" +
+            "      {\"bool\": {" +
+            "        \"should\": [" +
+            "          {\"term\": {" +
+            "            \"projectName\": {" +
+            "              \"value\": \"?0\"," +
+            "              \"boost\": 3.0" +
+            "            }" +
+            "          }}," +
+            "          {\"term\": {" +
+            "            \"projectName.ngram\": {" +
+            "              \"value\": \"?0\"," +
+            "              \"boost\": 2.0" +
+            "            }" +
+            "          }}" +
+            "        ]" +
+            "      }}," +
+            "      {\"bool\": {" +
+            "        \"should\": [" +
+            "          {\"term\": {" +
+            "            \"vcsType\": {" +
+            "              \"value\": \"?0\"," +
+            "              \"boost\": 1.5" +
+            "            }" +
+            "          }}," +
+            "          {\"term\": {" +
+            "            \"vcsType.ngram\": {" +
+            "              \"value\": \"?0\"," +
+            "              \"boost\": 1.0" +
+            "            }" +
+            "          }}" +
+            "        ]" +
+            "      }}" +
+            "    ]," +
+            "    \"minimum_should_match\": 1" +
+            "  }" +
+            "}")
     List<ProjectSearchDocument> searchByKeyword(String keyword);
 }

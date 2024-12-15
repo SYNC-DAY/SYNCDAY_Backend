@@ -9,4 +9,6 @@ public class ProjMember {
     private String participationStatus;
     private Long userId;
     private Long projId;
+    private String userName;
+    private String email;
 }

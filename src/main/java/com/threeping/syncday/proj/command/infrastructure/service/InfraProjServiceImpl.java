@@ -8,24 +8,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class InfraProjServiceImpl implements InfraProjService {
 
-    private final AppProjMemberService appProjMemberService;
-    private final ProjMemberService projMemberService;
-    @Autowired
-    public InfraProjServiceImpl(AppProjMemberService appProjMemberService
-            , ProjMemberService projMemberService) {
-        this.appProjMemberService = appProjMemberService;
-        this.projMemberService = projMemberService;
+    @Override
+    public String requestParticipationStatus(Long userId, Long projId) {
+        return "";
     }
 
     @Override
     public Boolean requestAddProjOwner(Long projId, Long userId) {
-        return appProjMemberService.addProjOwner(projId, userId);
+        return null;
     }
-
-    @Override
-    public String requestParticipationStatus(Long userId, Long projId) {
-        return projMemberService.getProjMemberParticipationStatus(userId, projId);
-    }
-
-
 }

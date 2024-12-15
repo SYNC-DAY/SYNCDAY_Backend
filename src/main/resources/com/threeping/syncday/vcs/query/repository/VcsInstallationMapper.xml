@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeping.syncday.vcs.query.repository.VcsInstallationMapper">
+    <resultMap id="vcsInstallationResultMap" type="com.threeping.syncday.vcs.query.aggregate.dto.VcsInstallationDTO">
+        <id property="id" column="id"/>
+        <result property="vcsType" column="vcs_type"/>
+        <result property="accountId" column="account_id"/>
+        <result property="accountName" column="account_name"/>
+        <result property="accountType" column="account_type"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="apiUrl" column="api_url"/>
+        <result property="htmlUrl" column="html_url"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <select id="selectByUserIdAndVcsType" resultMap="vcsInstallationResultMap">
+        SELECT
+            i.id,
+            i.vcs_type,
+            i.account_id,
+            i.account_name,
+            i.account_type,
+            i.avatar_url,
+            i.api_url,
+            i.html_url,
+            i.status,
+            i.created_at,
+            i.updated_at,
+            i.deleted_at
+        FROM
+            tbl_vcs_installation i
+                INNER JOIN
+            tbl_user_vcs_installation ui ON i.id = ui.installation_id
+        WHERE
+            ui.user_id = #{userId}
+          AND i.vcs_type = #{vcsType}
+          AND i.deleted_at IS NULL
+    </select>
+</mapper>

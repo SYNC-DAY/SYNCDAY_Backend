@@ -1,10 +1,10 @@
 package com.threeping.syncday.user.command.application.service;
 
-
-
-import java.util.Map;
+import com.threeping.syncday.user.command.aggregate.vo.GithubTokenResponse;
 
 public interface OAuth2Service {
+    GithubTokenResponse getGithubAccessToken(String code);
+    GithubTokenResponse refreshAccessToken(String refreshToken);
 
-    public String getGithubAccessToken(String code);
+
 }

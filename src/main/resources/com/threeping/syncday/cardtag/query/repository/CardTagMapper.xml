@@ -21,7 +21,7 @@
     </sql>
 
     <!-- Find by Workspace ID -->
-    <select id="selectCardTagsByWorkspaceId" parameterType="Long" resultMap="CardTagResultMap">
+    <select id="selectTagsByWorkspaceId" parameterType="Long" resultMap="CardTagResultMap">
         <include refid="baseSelect"/>
         WHERE workspace_id = #{workspaceId}
         ORDER BY tag_id

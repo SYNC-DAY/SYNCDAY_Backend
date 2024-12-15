@@ -62,7 +62,8 @@ public class AppMeetingroomReservationServiceImpl implements AppMeetingroomReser
         scheduleDTO.setMeetingStatus(MeetingStatus.ACTIVE);
         scheduleDTO.setPublicStatus(PublicStatus.PUBLIC);
         scheduleDTO.setUserId(meetingroomReservationDTO.getUserId());
-        scheduleDTO.setAttendeeIds(new ArrayList<>());
+//        scheduleDTO.setAttendeeIds(new ArrayList<>());
+        scheduleDTO.setAttendeeIds(meetingroomReservationDTO.getAttendeeIds());
 
         ScheduleDTO newScheduleDTO = infraMeetingroomReservationService.requestAddSchedule(scheduleDTO);
         log.info("New schedule: {}", newScheduleDTO);

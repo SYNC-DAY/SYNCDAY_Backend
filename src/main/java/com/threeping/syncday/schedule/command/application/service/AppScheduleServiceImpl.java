@@ -6,6 +6,7 @@ import com.threeping.syncday.schedule.command.Infrastructure.InfraScheduleServic
 import com.threeping.syncday.schedule.command.aggregate.dto.ScheduleDTO;
 import com.threeping.syncday.schedule.command.aggregate.entity.Schedule;
 import com.threeping.syncday.schedule.command.domain.repository.ScheduleRepository;
+import com.threeping.syncday.user.command.application.dto.UserDTO;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -14,6 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -41,22 +45,23 @@ public class AppScheduleServiceImpl implements AppScheduleService{
         newSchedule.setEndTime(newScheduleDTO.getEndTime());
         newSchedule.setUpdateTime(Timestamp.from(Instant.now()));
         newSchedule.setPublicStatus(newScheduleDTO.getPublicStatus());
-        newSchedule.setScheduleRepeatId(newScheduleDTO.getScheduleRepeatId());
-        newSchedule.setRepeatOrder(newScheduleDTO.getRepeatOrder());
         newSchedule.setMeetingStatus(newScheduleDTO.getMeetingStatus());
         newSchedule.setMeetingroomId(newScheduleDTO.getMeetingroomId());
         newSchedule.setUserId(newScheduleDTO.getUserId());
 
         scheduleRepository.saveAndFlush(newSchedule);
 
-        infraScheduleService.requestAddScheduleParticipant(newSchedule.getUserId()
-                , newSchedule.getScheduleId()
-                , newScheduleDTO.getAttendeeIds()
-                , newScheduleDTO.getNotificationTime());
+        // attendeeIds가 null이 아닌 경우에만 infraScheduleService 호출
+        if (newScheduleDTO.getAttendeeIds() != null) {
+            infraScheduleService.requestAddScheduleParticipant(newSchedule.getUserId()
+                    , newSchedule.getScheduleId()
+                    , newScheduleDTO.getAttendeeIds()
+                    , newScheduleDTO.getNotificationTime());
+        }
 
-        // 참석자 추가 요청 (반복 생각은 아직 안함)
-
-        return modelMapper.map(newSchedule, ScheduleDTO.class);
+        ScheduleDTO createdScheduleDTO = modelMapper.map(newSchedule, ScheduleDTO.class);
+        createdScheduleDTO.setAttendeeIds(newScheduleDTO.getAttendeeIds());
+        return createdScheduleDTO;
     }
 
     @Transactional
@@ -73,17 +78,18 @@ public class AppScheduleServiceImpl implements AppScheduleService{
         newSchedule.setEndTime(scheduleDTO.getEndTime());
         newSchedule.setUpdateTime(Timestamp.from(Instant.now()));
         newSchedule.setPublicStatus(scheduleDTO.getPublicStatus());
-        newSchedule.setScheduleRepeatId(scheduleDTO.getScheduleRepeatId());
-        newSchedule.setRepeatOrder(scheduleDTO.getRepeatOrder());
         newSchedule.setMeetingStatus(scheduleDTO.getMeetingStatus());
         newSchedule.setMeetingroomId(scheduleDTO.getMeetingroomId());
         newSchedule.setUserId(scheduleDTO.getUserId());
 
         scheduleRepository.saveAndFlush(newSchedule);
 
-        infraScheduleService.requestUpdateScheduleParticipant(newSchedule.getUserId()
-                , newSchedule.getScheduleId()
-                , scheduleDTO.getAttendeeIds());
+        // attendeeIds가 null이 아닌 경우에만 infraScheduleService 호출
+        if (scheduleDTO.getAttendeeIds() != null) {
+            infraScheduleService.requestUpdateScheduleParticipant(newSchedule.getUserId()
+                    , newSchedule.getScheduleId()
+                    , scheduleDTO.getAttendeeIds());
+        }
 
         return modelMapper.map(newSchedule, ScheduleDTO.class);
     }
@@ -99,5 +105,25 @@ public class AppScheduleServiceImpl implements AppScheduleService{
         scheduleRepository.delete(newSchedule);
         
         return modelMapper.map(newSchedule, ScheduleDTO.class);
+    }
+
+    @Override
+    public void sendMailToParticipants(ScheduleDTO createdScheduleDTO) {
+        List<String> emails = createdScheduleDTO.getAttendeeIds().stream().map(
+                id->{
+                    UserDTO userDTO = infraScheduleService.findUserById(id);
+                    return userDTO.getEmail();
+                }
+        ).toList();
+        UserDTO userDTO = infraScheduleService.findUserById(createdScheduleDTO.getUserId());
+        String userName = userDTO.getUserName();
+        String userPosition = userDTO.getPosition();
+        String title = "[SyncDay]" + userName + "(" + userPosition + ")" + " 님의 " + createdScheduleDTO.getTitle() + " 일정 초대 안내 메일";
+        Map<String,Object> varMap = new HashMap<>();
+        varMap.put("sender",userName + "(" + userPosition + ")");
+        varMap.put("title",createdScheduleDTO.getTitle());
+        varMap.put("date",createdScheduleDTO.getStartTime() + " ~ " + createdScheduleDTO.getEndTime());
+        varMap.put("scheduleId",createdScheduleDTO.getScheduleId());
+        infraScheduleService.sendMailToParticipants(emails,title,varMap);
     }
 }

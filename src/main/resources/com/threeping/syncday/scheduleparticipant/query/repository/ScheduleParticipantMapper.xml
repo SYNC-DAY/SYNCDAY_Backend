@@ -10,7 +10,19 @@
         <result property="participationStatus" column="status"/>
         <result property="notificationTime" column="notification_time"/>
     </resultMap>
-    
+
+    <resultMap id="scheduleAttendanceResultMap" type="com.threeping.syncday.scheduleparticipant.query.aggregate.ScheduleAttendanceDTO">
+        <result property="userId" column="user_id"/>
+        <result property="scheduleId" column="schedule_id"/>
+        <result property="participationStatus" column="status"/>
+        <result property="notificationTime" column="notification_time"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="scheduleOwnerName" column="schedule_owner_name"/>
+        <result property="teamName" column="team_name"/>
+    </resultMap>
     <select id="findParticipantsByNotificationTimeBetween" resultMap="scheduleParticipantResultMap" parameterType="map">
         SELECT US.USER_ID,
                US.SCHEDULE_ID,
@@ -18,5 +30,26 @@
                US.STATUS
           FROM TBL_USER_SCHEDULE US
          WHERE US.NOTIFICATION_TIME BETWEEN #{start} AND #{end}
+    </select>
+
+    <select id="findMyScheduleAttendance" resultMap="scheduleAttendanceResultMap" parameterType="long">
+        SELECT US.USER_ID,
+               US.SCHEDULE_ID,
+               US.NOTIFICATION_TIME,
+               US.STATUS,
+               S.TITLE,
+               S.CONTENT,
+               S.START_TIME,
+               S.END_TIME,
+               U.USERNAME AS SCHEDULE_OWNER_NAME,
+               T.TEAM_NAME
+        FROM TBL_USER_SCHEDULE US
+       INNER JOIN TBL_SCHEDULE S
+          ON US.SCHEDULE_ID = S.SCHEDULE_ID
+       INNER JOIN TBL_USER U
+          ON S.USER_ID = U.USER_ID
+       INNER JOIN TBL_TEAM T
+          ON U.TEAM_ID = T.TEAM_ID
+        WHERE US.USER_ID = #{userId};
     </select>
 </mapper>

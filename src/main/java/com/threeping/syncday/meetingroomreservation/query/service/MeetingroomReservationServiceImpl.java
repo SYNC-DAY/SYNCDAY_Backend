@@ -46,4 +46,16 @@ public class MeetingroomReservationServiceImpl implements MeetingroomReservation
                 .map(reservation -> modelMapper.map(reservation, MeetingroomReservationDTO.class))
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<MeetingroomReservationDTO> getMeetingroomReservationById(Long scheduleId) {
+        List<MeetingroomReservation> reservations = meetingroomReservationMapper.selectMeetingroomReservationById(scheduleId);
+        if (reservations == null || reservations.isEmpty()) {
+            throw new IllegalArgumentException("예약 정보를 찾을 수 없습니다. 예약 ID: " + scheduleId);
+        }
+        return reservations.stream()
+                .map(reservation -> modelMapper.map(reservation, MeetingroomReservationDTO.class))
+                .collect(Collectors.toList());
+    }
+
 }

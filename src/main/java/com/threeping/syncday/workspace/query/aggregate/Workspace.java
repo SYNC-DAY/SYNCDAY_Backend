@@ -26,6 +26,9 @@ public class Workspace {
     @JsonProperty("vcs_repo_url")
     private String vcsRepoUrl;
 
+    @JsonProperty("vcs_repo_name")
+    private String vcsRepoName;
+
     @JsonProperty("proj_id")
     private Long projId;
 

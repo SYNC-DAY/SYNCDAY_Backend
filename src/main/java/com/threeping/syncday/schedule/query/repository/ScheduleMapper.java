@@ -1,5 +1,6 @@
 package com.threeping.syncday.schedule.query.repository;
 
+import com.threeping.syncday.schedule.query.aggregate.MyTodayScheduleDTO;
 import com.threeping.syncday.schedule.query.aggregate.ScheduleDTO;
 import com.threeping.syncday.schedule.query.aggregate.ScheduleDetailDTO;
 import org.apache.ibatis.annotations.Mapper;
@@ -17,4 +18,6 @@ public interface ScheduleMapper {
                                                                          @Param("scheduleId") Long scheduleId);
 
     ScheduleDTO selectByScheduleId(Long scheduleId);
+
+    List<MyTodayScheduleDTO> selectMyTodaySchedule(Long userId);
 }

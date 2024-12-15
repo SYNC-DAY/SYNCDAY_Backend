@@ -2,9 +2,10 @@ package com.threeping.syncday.card.command.aggregate.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.threeping.syncday.card.command.aggregate.entity.VCSOBJECTTYPE;
+import lombok.Data;
 
 import java.sql.Timestamp;
-
+@Data
 public class CardDTO {
 
     @JsonProperty("card_id")

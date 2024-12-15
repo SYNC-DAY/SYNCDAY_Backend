@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.threeping.syncday.teamboard.query.repository.TeamBoardMapper">
+    <resultMap id="teamBoardResultMap" type="com.threeping.syncday.teamboard.command.aggregate.dto.TeamBoardDTO">
+        <id property="teamBoardId" column="team_board_id"></id>
+        <result property="teamId" column="team_id"></result>
+        <result property="boardTitle" column="board_title"></result>
+    </resultMap>
+
+    <select id="findMyTeamBoardByUserId" resultMap="teamBoardResultMap">
+        SELECT A.TEAM_BOARD_ID
+             , A.TEAM_ID
+             , A.BOARD_TITLE
+          FROM TBL_TEAM_BOARD A
+          LEFT JOIN TBL_USER B ON A.TEAM_ID = B.TEAM_ID
+         WHERE B.USER_ID = #{userId}
+    </select>
+</mapper>

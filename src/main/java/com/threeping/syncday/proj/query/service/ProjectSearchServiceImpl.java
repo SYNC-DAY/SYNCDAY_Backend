@@ -42,12 +42,7 @@ public class ProjectSearchServiceImpl implements ProjectSearchService {
                 .projectId(doc.getProjectId())
                 .projectName(doc.getProjectName())
                 .vcsType(doc.getVcsType())
-                .createAt(convertToString(doc.getCreatedAt()))
+                .createdAt((doc.getCreatedAt()))
                 .build();
-    }
-
-    private String convertToString(LocalDateTime createdAt) {
-        log.info("요청 들어왔는가 확인: {}", createdAt);
-        return createdAt.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
     }
 }

@@ -28,8 +28,6 @@ public class  ProjAndWorkspaceDTO {
     @JsonProperty("progress_status")
     Byte progressStatus;
 
-    @JsonProperty("vcs_type")
-    String vcsType;
 
     @JsonProperty("vcs_proj_url")
     String vcsProjUrl;

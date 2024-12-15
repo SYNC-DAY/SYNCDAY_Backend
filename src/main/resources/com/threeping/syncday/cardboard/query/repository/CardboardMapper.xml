@@ -15,6 +15,18 @@
         <result property="workspaceId" column="workspace_id"></result>
     </resultMap>
 
+    <!-- ES를 위한 queryDTOMAP 추가 -->
+    <resultMap id="searchResultMap" type="com.threeping.syncday.cardboard.query.dto.CardboardQueryDTO">
+        <id property="cardboardId" column="cardboard_id"/>
+        <result property="cardboardName" column="title"/>
+        <result property="projectId" column="proj_id"/>
+        <result property="workspaceId" column="workspace_id"/>
+        <result property="workspaceName" column="workspace_name"/>
+        <result property="vcsType" column="vcs_type"/>
+        <result property="vcsMilestoneUrl" column="vcs_milestone_url"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
     <select id="selectAllCardBoards" resultMap="cardBoardResultMap">
         SELECT
                 CARDBOARD_ID
@@ -43,6 +55,38 @@
                ,WORKSPACE_ID
           FROM  TBL_CARDBOARD
           WHERE WORKSPACE_ID = #{ workspaceId }
+    </select>
+
+    <select id="selectCardboardById" resultMap="searchResultMap" parameterType="Long">
+        SELECT
+            c.cardboard_id,
+            c.title,
+            w.proj_id,
+            w.workspace_id,
+            w.workspace_name,
+            c.vcs_type,
+            c.vcs_milestone_url,
+            c.created_at
+        FROM
+            TBL_CARDBOARD c
+                LEFT JOIN TBL_WORKSPACE w ON c.workspace_id = w.workspace_id
+        WHERE
+            c.cardboard_id = #{cardboardId}
+    </select>
+
+    <select id="findAllCardboards" resultMap="searchResultMap">
+        SELECT
+            c.cardboard_id,
+            c.title,
+            w.proj_id,
+            w.workspace_id,
+            w.workspace_name,
+            c.vcs_type,
+            c.vcs_milestone_url,
+            c.created_at
+        FROM
+            TBL_CARDBOARD c
+                LEFT JOIN TBL_WORKSPACE w ON c.workspace_id = w.workspace_id
     </select>
 
 </mapper>

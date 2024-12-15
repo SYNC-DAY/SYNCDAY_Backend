@@ -5,13 +5,14 @@ import com.threeping.syncday.projmember.query.aggregate.ProjMember;
 import com.threeping.syncday.projmember.query.aggregate.ProjMemberDTO;
 import com.threeping.syncday.projmember.query.aggregate.dto.UserProjInfoDTO;
 import com.threeping.syncday.projmember.query.repository.ProjMemberMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
+@Slf4j
 @Service
 public class ProjMemberServiceImpl implements ProjMemberService {
 
@@ -45,7 +46,9 @@ public class ProjMemberServiceImpl implements ProjMemberService {
     /* 설명. 프로젝트 탭으로 이동시 유저의 아이디를 통해 프로젝트와 워크스페이스 정보 조회 */
     @Override
     public List<UserProjInfoDTO> getProjsByUserId(Long userId) {
-        return projMemberMapper.selectProjsByUserId(userId);
+        List<UserProjInfoDTO> info = projMemberMapper.selectProjsByUserId(userId);
+        info.forEach(projMember -> log.info("projMember: {}", projMember));
+        return info;
     }
 
     @Override

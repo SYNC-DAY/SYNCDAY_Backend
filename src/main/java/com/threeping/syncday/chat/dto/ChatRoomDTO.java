@@ -1,18 +1,12 @@
 package com.threeping.syncday.chat.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-@Data
-@Builder
+@Getter
+@Setter
 public class ChatRoomDTO {
     private String roomId;
     private String chatRoomName;
-    private Long creatorId;
-    private int memberCount;
-    private List<Long> memberIds;
-    private LocalDateTime createdAt;
+    private String lastMessage;
 }

@@ -45,14 +45,6 @@ public class ScheduleDTO {
     @Schema(description = "공개 여부", example = "PUBLIC")
     PublicStatus publicStatus;
 
-    @JsonProperty("schedule_repeat_id")
-    @Schema(description = "반복일정 고유번호", example = "1")
-    Long scheduleRepeatId;
-
-    @JsonProperty("repeat_order")
-    @Schema(description = "반복순서 번호", example = "1")
-    Long repeatOrder;
-
     @JsonProperty("meeting_status")
     @Schema(description = "회의 여부", example = "ACTIVE")
     MeetingStatus meetingStatus;

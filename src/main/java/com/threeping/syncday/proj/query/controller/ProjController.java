@@ -36,14 +36,9 @@ public class ProjController {
         return ResponseDTO.ok(projService.getProjById(projId));
     }
 
-    /* userId에 해당하는 프로젝트와 워크스페이스 리스트 반환 */
-    @GetMapping("users/{userId}")
-    public ResponseDTO<?> findProjInfosByUserId(@PathVariable("userId") Long userId){
-        return ResponseDTO.ok(projService.getProjInfosByUserId(userId));
-    }
 
     @Operation(summary = "프로젝트 검색",
-            description = "프로젝트 이름, VCSTAG를 키워드로 회원을 검색합니다.",
+            description = "프로젝트 이름, VCSTAG를 키워드로 프로젝트를 검색합니다.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",

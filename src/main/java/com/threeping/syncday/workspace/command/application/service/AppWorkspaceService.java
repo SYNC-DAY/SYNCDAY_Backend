@@ -1,11 +1,12 @@
 package com.threeping.syncday.workspace.command.application.service;
 
+import com.threeping.syncday.workspace.command.aggregate.dto.WorkspaceDTO;
 import com.threeping.syncday.workspace.command.aggregate.vo.WorkspaceVO;
 
 public interface AppWorkspaceService {
     WorkspaceVO addWorkspace(WorkspaceVO newWorkspace);
 
-    WorkspaceVO modifyWorkspace(WorkspaceVO workspaceVO);
+    WorkspaceDTO modifyWorkspace(WorkspaceVO workspaceVO);
 
-    WorkspaceVO deleteWorkspace(Long workspaceId);
+    WorkspaceDTO deleteWorkspace(Long workspaceId);
 }

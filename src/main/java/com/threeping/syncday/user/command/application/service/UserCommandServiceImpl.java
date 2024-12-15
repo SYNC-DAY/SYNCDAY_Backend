@@ -109,4 +109,15 @@ public class UserCommandServiceImpl implements UserCommandService {
             throw new CommonException(ErrorCode.INVALID_PARAMETER_FORMAT);
         }
     }
+
+    @Override
+    public String getUserNameById(Long senderId) {
+        String userName = userRepository.findUserNameById(senderId);
+
+        if (userName == null) {
+            log.error("해당 유저를 찾을 수 없습니다.: {}", senderId);
+        }
+        log.info("조회된 유저: {}", userName);
+        return userName;
+    }
 }

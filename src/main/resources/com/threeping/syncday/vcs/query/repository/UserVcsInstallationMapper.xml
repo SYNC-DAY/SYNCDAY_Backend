@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.threeping.syncday.vcs.query.repository.UserVcsInstallationMapper">
+    <resultMap id="userVcsInstallationWithDetailsResultMap" type="com.threeping.syncday.vcs.query.aggregate.dto.UserVcsInstallationDTO">
+        <id property="id" column="uvi_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="installationId" column="uvi_installation_id"/>
+        <result property="scope" column="scope"/>
+        <result property="createdAt" column="uvi_created_at"/>
+        <result property="updatedAt" column="uvi_updated_at"/>
+        <result property="deletedAt" column="uvi_deleted_at"/>
+        <association property="vcsInstallation" javaType="com.threeping.syncday.vcs.query.aggregate.dto.VcsInstallationDTO">
+            <id property="id" column="vi_id"/>
+            <result property="vcsType" column="vcs_type"/>
+            <result property="installationId" column="vi_installation_id"/>
+            <result property="accountId" column="account_id"/>
+            <result property="accountName" column="account_name"/>
+            <result property="accountType" column="account_type"/>
+            <result property="avatarUrl" column="avatar_url"/>
+            <result property="apiUrl" column="api_url"/>
+            <result property="htmlUrl" column="html_url"/>
+            <result property="status" column="status"/>
+            <result property="createdAt" column="vi_created_at"/>
+            <result property="updatedAt" column="vi_updated_at"/>
+            <result property="deletedAt" column="vi_deleted_at"/>
+        </association>
+    </resultMap>
+
+    <select id="selectByUserIdAndInstallationId" resultMap="userVcsInstallationWithDetailsResultMap">
+        SELECT
+            uvi.id as uvi_id,
+            uvi.user_id,
+            uvi.installation_id as uvi_installation_id,
+            uvi.scope,
+            uvi.created_at as uvi_created_at,
+            uvi.updated_at as uvi_updated_at,
+            uvi.deleted_at as uvi_deleted_at,
+            vi.id as vi_id,
+            vi.installation_id as vi_installation_id,
+            vi.vcs_type,
+            vi.account_id,
+            vi.account_name,
+            vi.account_type,
+            vi.avatar_url,
+            vi.api_url,
+            vi.html_url,
+            vi.status,
+            vi.created_at as vi_created_at,
+            vi.updated_at as vi_updated_at,
+            vi.deleted_at as vi_deleted_at
+        FROM
+            tbl_user_vcs_installation uvi
+                JOIN
+            tbl_vcs_installation vi
+            ON uvi.installation_id = vi.id
+        WHERE
+            uvi.user_id = #{userId}
+          AND vi.id = #{installationId}
+          AND uvi.deleted_at IS NULL
+          AND vi.deleted_at IS NULL
+    </select>
+</mapper>

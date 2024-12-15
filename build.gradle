@@ -35,9 +35,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
-    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
     testImplementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter-test:3.0.3'
     testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'io.projectreactor:reactor-test'
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
@@ -77,6 +80,35 @@ dependencies {
     // 테스트 코드에서도 롬복 적용(로그 기능 활용을 위한 추가)
     testCompileOnly 'org.projectlombok:lombok'
     testAnnotationProcessor 'org.projectlombok:lombok'
+
+    // mybatis 페이징 처리
+    implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:1.4.6'
+
+
+    // GithubApp dependencies
+    // https://mvnrepository.com/artifact/org.kohsuke/github-api
+    implementation group: 'org.kohsuke', name: 'github-api', version: '1.318'
+
+
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk18on
+    implementation group: 'org.bouncycastle', name: 'bcpkix-jdk18on', version: '1.78.1'
+
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
+    implementation group: 'org.bouncycastle', name: 'bcprov-jdk18on', version: '1.78.1'
+
+    // build.gradle
+    // AWS Secrets Manager
+    implementation 'com.amazonaws:aws-java-sdk-secretsmanager:1.12.571'
+
+    // AWS Java SDK Core
+    implementation 'com.amazonaws:aws-java-sdk-core:1.12.571'
+
+    // Spring Cloud AWS
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.1.0'
+
+    // Spring Cloud AWS Secrets Manager
+    implementation 'io.awspring.cloud:spring-cloud-aws-starter-secrets-manager:3.1.0'
+
 }
 
 tasks.named('test') {

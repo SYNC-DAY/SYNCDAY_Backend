@@ -1,6 +1,9 @@
 package com.threeping.syncday.meetingroom.query.aggregate;
 
+import com.threeping.syncday.schedule.query.aggregate.UserInfoDTO;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class Meetingroom {
@@ -9,4 +12,5 @@ public class Meetingroom {
     String meetingroomPlace;
     String meetingroomName;
     Integer meetingroomCapacity;
+    List<UserInfoDTO> userInfo;
 }

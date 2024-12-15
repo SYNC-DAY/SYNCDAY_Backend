@@ -5,6 +5,7 @@ import com.threeping.syncday.card.command.aggregate.entity.Card;
 import com.threeping.syncday.card.command.aggregate.vo.RequestDeleteCardVO;
 import com.threeping.syncday.card.command.aggregate.vo.RequestUpdateCardVO;
 import com.threeping.syncday.card.command.domain.repository.CardRepository;
+import com.threeping.syncday.cardboard.command.aggreate.vo.IssueToCardVO;
 import com.threeping.syncday.common.exception.CommonException;
 import com.threeping.syncday.common.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +13,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -33,7 +36,10 @@ public class AppCardServiceImpl implements AppCardService {
         log.info("cardToAdd: {}", cardToAdd);
         cardToAdd.setCreatedBy(newCard.getUserId());
         Card addedCard = cardRepository.save(cardToAdd);
-        return modelMapper.map(addedCard, CardDTO.class);
+        log.info("addedCard: {}", addedCard);
+        CardDTO result = modelMapper.map(addedCard, CardDTO.class);
+        log.info("result: {}", result);
+        return result;
     }
 
     @Override
@@ -65,6 +71,18 @@ public class AppCardServiceImpl implements AppCardService {
         }
         cardRepository.delete(foundCard);
 
+        return Boolean.TRUE;
+    }
+
+    @Override
+    public Boolean addCards(Long cardboardId, List<IssueToCardVO> cards) {
+        List<Card> cardsToAdd = cards.stream()
+                .map(card->{
+                    Card cardToAdd = modelMapper.map(card, Card.class);
+                    cardToAdd.setCardboardId(cardboardId);
+                    return cardToAdd;
+                }).toList();
+        cardRepository.saveAll(cardsToAdd);
         return Boolean.TRUE;
     }
 }

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.threeping.syncday.vcs.query.repository.GithubInstallationMapper">
+    <resultMap id="githubInstallationResult" type="com.threeping.syncday.vcs.query.aggregate.dto.GithubInstallationDTO">
+        <id property="id" column="id"/>
+        <result property="installationId" column="installation_id"/>
+        <result property="accountId" column="account_id"/>
+        <result property="accountName" column="account_name"/>
+        <result property="accountType" column="account_type"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="htmlUrl" column="html_url"/>
+        <result property="status" column="status"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="userId" column="user_id"/>
+    </resultMap>
+
+    <select id="selectByUserId" parameterType="Long" resultMap="githubInstallationResult">
+        SELECT id,
+               installation_id,
+               account_id,
+               account_name,
+               account_type,
+               avatar_url,
+               html_url,
+               status,
+               created_at,
+               updated_at,
+               user_id
+        FROM tbl_github_installation
+        WHERE user_id = #{userId}
+          AND status = 'ACTIVE'
+        ORDER BY created_at DESC
+    </select>
+</mapper>

@@ -1,5 +1,6 @@
 package com.threeping.syncday.meetingroom.query.controller;
 
+import com.threeping.syncday.meetingroom.query.service.MeetingroomService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +16,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class MeetingroomControllerTests {
 
+//    @Autowired
+//    MeetingroomController meetingroomController;
+
     @Autowired
-    MeetingroomController meetingroomController;
+    MeetingroomService meetingroomService;
 
     @Autowired
     private MockMvc mockMvc;
@@ -24,7 +28,7 @@ class MeetingroomControllerTests {
     @DisplayName("회의실 전체 조회 테스트")
     @Test
     void testGetAllMeetingrooms() throws Exception {
-        mockMvc.perform(get("/api/meetingroom/"))
+        mockMvc.perform(get("/api/meetingroom"))
                 .andExpect(status().isOk())
                 .andDo(print());
     }

@@ -1,7 +1,6 @@
 package com.threeping.syncday.workspace.query.service;
 
 
-import com.threeping.syncday.workspace.query.aggregate.Workspace;
 import com.threeping.syncday.workspace.query.aggregate.WorkspaceDTO;
 import com.threeping.syncday.workspace.query.aggregate.WorkspaceInfoDTO;
 import com.threeping.syncday.workspace.query.respository.WorkspaceMapper;
@@ -28,20 +27,21 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     @Override
-    public List<com.threeping.syncday.workspace.query.aggregate.WorkspaceDTO> getAllWorkspaces() {
-        List<Workspace> workspaces = workspaceMapper.selectAllWorkSpaces();
-        List<com.threeping.syncday.workspace.query.aggregate.WorkspaceDTO> workspaceDTOs = workspaces.stream().map(workspace -> modelMapper.map(workspace, com.threeping.syncday.workspace.query.aggregate.WorkspaceDTO.class)).collect(Collectors.toList());
-        return workspaceDTOs;
+    public List<WorkspaceDTO> getAllWorkspaces() {
+        return workspaceMapper.selectAllWorkSpaces();
     }
 
     @Override
     public List<WorkspaceDTO> getWorkspacesByProjId(Long projId) {
-       List<Workspace> workspaces= workspaceMapper.selectWorkspacesByProjId(projId);
-       return workspaces.stream().map(workspace -> modelMapper.map(workspace, WorkspaceDTO.class)).collect(Collectors.toList());
+        List<WorkspaceDTO> workspaces = workspaceMapper.selectWorkspacesByProjId(projId);
+        workspaces.forEach(x-> log.info("x: {}", x));
+       return workspaceMapper.selectWorkspacesByProjId(projId);
     }
 
     @Override
     public WorkspaceInfoDTO getWorkspaceInfo(Long workspaceId) {
+        WorkspaceInfoDTO workspace = workspaceMapper.selectWorkspaceById(workspaceId);
+        log.info("workspace: {}", workspace);
         return workspaceMapper.selectWorkspaceById(workspaceId);
     }
 }

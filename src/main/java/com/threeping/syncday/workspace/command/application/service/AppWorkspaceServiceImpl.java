@@ -2,6 +2,7 @@ package com.threeping.syncday.workspace.command.application.service;
 
 import com.threeping.syncday.common.exception.CommonException;
 import com.threeping.syncday.common.exception.ErrorCode;
+import com.threeping.syncday.workspace.command.aggregate.dto.WorkspaceDTO;
 import com.threeping.syncday.workspace.command.aggregate.vo.WorkspaceVO;
 import com.threeping.syncday.workspace.command.aggregate.entity.Workspace;
 import com.threeping.syncday.workspace.command.domain.repository.WorkspaceRepository;
@@ -39,22 +40,23 @@ public class AppWorkspaceServiceImpl implements AppWorkspaceService {
 
     @Transactional
     @Override
-    public WorkspaceVO modifyWorkspace(WorkspaceVO workspaceVO) {
+    public WorkspaceDTO modifyWorkspace(WorkspaceVO workspaceVO) {
         Workspace existingWs = workspaceRepository.findById(workspaceVO.getWorkspaceId()).orElse(null);
         if (existingWs == null) {
             throw new CommonException(ErrorCode.WORKSPACE_NOT_FOUND);
         }
         existingWs.setWorkspaceName(workspaceVO.getWorkspaceName());
         existingWs.setVcsType(workspaceVO.getVcsType());
+        existingWs.setVcsRepoName(workspaceVO.getVcsRepoName());
         existingWs.setVcsRepoUrl(workspaceVO.getVcsRepoUrl());
         Workspace updatedWorkspace = workspaceRepository.save(existingWs);
         log.info("updatedWorkspace: {}", updatedWorkspace);
-        return modelMapper.map(updatedWorkspace, WorkspaceVO.class);
+        return modelMapper.map(updatedWorkspace, WorkspaceDTO.class);
     }
 
     @Transactional
     @Override
-    public WorkspaceVO deleteWorkspace(Long workspaceId) {
+    public WorkspaceDTO deleteWorkspace(Long workspaceId) {
         Workspace existingWorkspace = workspaceRepository.findById(workspaceId).orElse(null);
 
         if (existingWorkspace == null) {
@@ -62,6 +64,6 @@ public class AppWorkspaceServiceImpl implements AppWorkspaceService {
         }
 
         workspaceRepository.delete(existingWorkspace);
-        return modelMapper.map(existingWorkspace, WorkspaceVO.class);
+        return modelMapper.map(existingWorkspace, WorkspaceDTO.class);
     }
 }

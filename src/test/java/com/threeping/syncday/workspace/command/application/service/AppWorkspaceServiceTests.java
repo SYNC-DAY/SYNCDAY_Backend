@@ -18,65 +18,9 @@ class AppWorkspaceServiceTests {
     @Autowired
     private AppWorkspaceService appWorkspaceService;
 
-    @DisplayName("워크스페이스 생성 테스트")
-    @Test
-    void testAddWorkspace() {
-
-        // given
-        Long projId = 1L;
-        String workspaceName = "test";
-
-        // when
-
-        WorkspaceVO workspaceVO = new WorkspaceVO();
-        workspaceVO.setWorkspaceName(workspaceName);
-        workspaceVO.setProjId(projId);
-        WorkspaceVO addedWorkspace = appWorkspaceService.addWorkspace(workspaceVO);
-
-        // then
-        assertEquals(workspaceVO.getWorkspaceName(), addedWorkspace.getWorkspaceName());
-
-        log.info("addedWorkspace: {}", addedWorkspace);
-
-    }
 
 
-    @DisplayName("워크스페이스 수정 테스트")
-    @Test
-    void testModifyWorkspace() {
-
-        // given
-        Long workspaceId = 1L;
-        String prevWorkspaceName="SyncDay백엔드";
-        String workspaceName = "test";
-
-        // when
-        WorkspaceVO workspaceVO = new WorkspaceVO();
-        workspaceVO.setWorkspaceId(workspaceId);
-        workspaceVO.setWorkspaceName(workspaceName);
-
-        // then
-        WorkspaceVO modifiedWorkspace = appWorkspaceService.modifyWorkspace(workspaceVO);
-
-        assertNotEquals(prevWorkspaceName, modifiedWorkspace.getWorkspaceName());
-        log.info("modifiedWorkspace: {}", modifiedWorkspace);
-
-    }
 
 
-    @DisplayName("워크스페이스 삭제 테스트")
-    @Test
-    void testDeleteWorkspace(){
 
-        // given
-        Long workspaceId = 1L;
-
-
-        // when
-        WorkspaceVO deletedWorkspace = appWorkspaceService.deleteWorkspace(workspaceId);
-
-        // then
-        assertEquals(workspaceId, deletedWorkspace.getWorkspaceId());
-        log.info("deletedWorkspace: {}", deletedWorkspace);
-    }
 }

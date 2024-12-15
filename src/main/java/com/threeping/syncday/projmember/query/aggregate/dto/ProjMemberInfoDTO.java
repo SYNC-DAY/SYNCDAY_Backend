@@ -44,10 +44,11 @@ public class ProjMemberInfoDTO {
 
     @JsonProperty("vcs_type")
     private String vcsType;
-
     @JsonProperty("vcs_proj_url")
     private String vcsProjUrl;
 
+    @JsonProperty("vcs_installation_id")
+    private Long vcsInstallationId;
     @JsonProperty("workspaces")
     List<WorkspaceDTO> workspaces;
 

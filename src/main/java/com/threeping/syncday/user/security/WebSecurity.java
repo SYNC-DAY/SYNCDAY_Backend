@@ -75,8 +75,9 @@ public class WebSecurity {
                         .requestMatchers(new AntPathRequestMatcher("/v3/api-docs/**")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/swagger-custom-ui.html")).permitAll()
                         .requestMatchers(new AntPathRequestMatcher("/api/docs/login")).permitAll()
-                        .anyRequest().authenticated()
-        )
+                        .requestMatchers("/auth/**", "/ws/**").permitAll()
+                        .anyRequest().authenticated())
+
                 // manager 등록
                 .authenticationManager(authenticationManager)
                 // session 방식 사용 x

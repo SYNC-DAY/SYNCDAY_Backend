@@ -1,5 +1,6 @@
 package com.threeping.syncday.scheduleparticipant.query.service;
 
+import com.threeping.syncday.scheduleparticipant.query.aggregate.ScheduleAttendanceDTO;
 import com.threeping.syncday.scheduleparticipant.query.aggregate.ScheduleParticipantDTO;
 import com.threeping.syncday.scheduleparticipant.query.repository.ScheduleParticipantMapper;
 import org.modelmapper.ModelMapper;
@@ -31,5 +32,12 @@ public class ScheduleParticipantServiceImpl implements ScheduleParticipantServic
                 scheduleParticipantMapper.findParticipantsByNotificationTimeBetween(now, tenMinutesLater);
 
         return schedules;
+    }
+
+    @Override
+    public List<ScheduleAttendanceDTO> getMyScheduleAttendance(Long userId) {
+        List<ScheduleAttendanceDTO> myScheduleAttendance
+                = scheduleParticipantMapper.findMyScheduleAttendance(userId);
+        return myScheduleAttendance;
     }
 }

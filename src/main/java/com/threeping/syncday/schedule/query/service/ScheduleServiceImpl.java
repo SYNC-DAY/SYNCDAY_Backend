@@ -1,5 +1,6 @@
 package com.threeping.syncday.schedule.query.service;
 
+import com.threeping.syncday.schedule.query.aggregate.MyTodayScheduleDTO;
 import com.threeping.syncday.schedule.query.aggregate.ScheduleDTO;
 import com.threeping.syncday.schedule.query.aggregate.ScheduleDetailDTO;
 import com.threeping.syncday.schedule.query.repository.ScheduleMapper;
@@ -55,5 +56,10 @@ public class ScheduleServiceImpl implements ScheduleService {
     @Override
     public ScheduleDTO getScheduleByScheduleId(Long scheduleId){
         return scheduleMapper.selectByScheduleId(scheduleId);
+    }
+
+    @Override
+    public List<MyTodayScheduleDTO> getMyTodaySchedule(Long userId) {
+        return scheduleMapper.selectMyTodaySchedule(userId);
     }
 }

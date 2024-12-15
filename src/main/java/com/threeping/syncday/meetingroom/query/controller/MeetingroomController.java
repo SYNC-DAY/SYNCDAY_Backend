@@ -22,7 +22,7 @@ public class MeetingroomController {
     }
 
     // 모든 회의실 조회
-    @GetMapping
+    @GetMapping("")
     public ResponseDTO<?> findAllMeetingrooms() {
         return ResponseDTO.ok(meetingroomService.getAllMeetingrooms());
     }

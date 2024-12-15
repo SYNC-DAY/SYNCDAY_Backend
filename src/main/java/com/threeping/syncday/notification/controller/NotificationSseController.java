@@ -1,7 +1,6 @@
 package com.threeping.syncday.notification.controller;
 
-import com.threeping.syncday.notification.infrastructure.InfraNotificationService;
-import com.threeping.syncday.schedule.query.aggregate.ScheduleDTO;
+import com.threeping.syncday.notification.service.NotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,45 +9,24 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @RestController
 @RequestMapping("/sse/notification")
 public class NotificationSseController {
 
-    private final ConcurrentHashMap<String,SseEmitter> emitters = new ConcurrentHashMap<>();
-    private final InfraNotificationService infraNotificationService;
+    private final NotificationService notificationService;
 
-    public NotificationSseController(InfraNotificationService infraNotificationService){
-        this.infraNotificationService = infraNotificationService;
+    public NotificationSseController(NotificationService notificationService){
+        this.notificationService = notificationService;
+
     }
 
     @GetMapping( value = "/subscribe/{userId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@PathVariable String userId){
-        SseEmitter emitter = new SseEmitter(0L);
-        emitters.put(userId,emitter);
-
-        emitter.onCompletion(()->emitters.remove(userId));
-        log.info("SSE 연결 성공 / 유저아이디: {}",userId);
-        emitter.onTimeout(()->emitters.remove(userId));
-
-        return emitter;
+    public SseEmitter subscribe(@PathVariable Long userId){
+        return notificationService.createEmitter(userId);
     }
-
-    public void sendScheduleNotification(Long userId, Long scheduleId){
-        SseEmitter emitter = emitters.get(userId.toString());
-        ScheduleDTO scheduleDTO = infraNotificationService.findScheduleByScheduleId(scheduleId);
-        if (emitter != null){
-            try {
-                emitter.send(SseEmitter.event().name(scheduleDTO.getTitle()).data(scheduleDTO));
-                log.info("sse send");
-            } catch (Exception e) {
-                emitters.remove(userId.toString());
-            }
-        }
-    }
-
 
 
 }
+

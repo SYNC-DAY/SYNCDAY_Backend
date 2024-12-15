@@ -8,11 +8,28 @@
         <result property="teamName" column="team_name"></result>
     </resultMap>
 
+    <resultMap id="myTeamResultMap" type="com.threeping.syncday.team.query.aggregate.MyTeamDTO">
+        <id property="teamId" column="team_id"></id>
+        <result property="teamName" column="team_name"></result>
+        <result property="userId" column="user_Id"></result>
+    </resultMap>
+
+
     <!-- 모든 팀을 조회하는 select 쿼리 -->
     <select id="selectAllTeams" resultMap="teamResultMap">
         SELECT
                  TEAM_ID
                 ,TEAM_NAME
             FROM TBL_TEAM
+    </select>
+
+    <select id="selectMyTeam" resultMap="myTeamResultMap" parameterType="long">
+        SELECT A.TEAM_NAME,
+               A.TEAM_ID,
+               B.USER_ID
+          FROM TBL_TEAM A
+         INNER JOIN TBL_USER B
+            ON A.TEAM_ID = B.TEAM_ID
+         WHERE B.USER_ID = #{userId}
     </select>
 </mapper>

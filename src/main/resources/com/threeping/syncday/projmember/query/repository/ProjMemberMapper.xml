@@ -10,6 +10,8 @@
         <result property="participationStatus" column="participation_status"></result>
         <result property="userId" column="user_id"></result>
         <result property="projId" column="proj_id"></result>
+        <result property="userName" column="username"></result>
+        <result property="email" column="email"></result>
     </resultMap>
 
     <select id="selectAllProjMembers" resultMap="projMemberResultMap">
@@ -25,13 +27,16 @@
 
     <select id="selectProjMembersByProjId" resultMap="projMemberResultMap" parameterType="long">
         SELECT
-                PROJ_MEMBER_ID
-               ,BOOKMARK_STATUS
-               ,PARTICIPATION_STATUS
-               ,USER_ID
-               ,PROJ_ID
-        FROM    TBL_PROJ_MEMBER
-       WHERE   PROJ_ID = #{ projId }
+                pm.PROJ_MEMBER_ID
+               ,pm.BOOKMARK_STATUS
+               ,pm.PARTICIPATION_STATUS
+               ,pm.USER_ID
+               ,pm.PROJ_ID
+               ,u.USERNAME
+               ,u.EMAIL
+        FROM    TBL_PROJ_MEMBER pm
+        JOIN TBL_USER u ON pm.USER_ID = u.USER_ID
+       WHERE   pm.PROJ_ID = #{ projId }
     </select>
 
 
@@ -41,11 +46,10 @@
     <resultMap id="workspaceResultMap" type="com.threeping.syncday.workspace.query.aggregate.WorkspaceDTO">
         <id property="workspaceId" column="workspace_id"/>
         <result property="workspaceName" column="workspace_name"/>
-        <result property="createdAt" column="workspace_created_at"/>
-        <result property="progressStatus" column="workspace_progress_status"/>
-        <result property="vcsType" column="workspace_vcs_type"/>
-        <result property="vcsRepoUrl" column="workspace_vcs_repo_url"/>
-        <result property="projId" column="workspace_proj_id"/>
+        <result property="vcsRepoUrl" column="vcs_repo_url"></result>
+        <result property="vcsType" column="vcs_type"></result>
+        <result property="progressStatus" column="progress_status"></result>
+        <result property="projId" column="ws_proj_id"/>
     </resultMap>
 
     <!-- ResultMap for ProjMemberInfoDTO -->
@@ -60,8 +64,9 @@
         <result property="endTime" column="end_time"/>
         <result property="createdAt" column="proj_created_at"/>
         <result property="progressStatus" column="proj_progress_status"/>
-        <result property="vcsType" column="proj_vcs_type"/>
+        <result property="vcsType" column="vcs_type"/>
         <result property="vcsProjUrl" column="vcs_proj_url"/>
+        <result property="vcsInstallationId" column="vcs_installation_id"/>
         <collection property="workspaces" resultMap="workspaceResultMap"/>
     </resultMap>
 
@@ -84,15 +89,15 @@
             p.end_time,
             p.created_at as proj_created_at,
             p.progress_status as proj_progress_status,
-            p.vcs_type as proj_vcs_type,
+            p.vcs_type,
             p.vcs_proj_url,
+            p.vcs_installation_id,
             w.workspace_id,
             w.workspace_name,
-            w.created_at as workspace_created_at,
-            w.progress_status as workspace_progress_status,
-            w.vcs_type as workspace_vcs_type,
-            w.vcs_repo_url as workspace_vcs_repo_url,
-            w.proj_id as workspace_proj_id
+            w.vcs_repo_url,
+            w.vcs_type,
+            w.progress_status,
+            w.proj_id as ws_proj_id
         FROM
             TBL_PROJ_MEMBER pm
                 INNER JOIN TBL_PROJ p ON pm.proj_id = p.proj_id
