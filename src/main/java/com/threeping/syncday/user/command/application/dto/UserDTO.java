@@ -26,10 +26,8 @@ public class UserDTO {
     private String phoneNumber;
 
     @Schema(description = "유저 프로필사진", example = "dachshund.jpg")
-    private String profilePhoto;
+    private String profileUrl;
 
-    @Schema(description = "입사연도", example = "20230120")
-    private String joinYear;
 
     @Schema(description = "직책", example = "대리")
     private String position;
@@ -38,5 +36,5 @@ public class UserDTO {
     private Long teamId;
 
     @Schema(description = "마지막 로그인 시각", example = "2024-12-11 14:45:30")
-    private String lastAccessTime;
+    private String lastActivatedAt;
 }

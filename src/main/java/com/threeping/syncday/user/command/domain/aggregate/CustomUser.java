@@ -27,6 +27,6 @@ public class CustomUser extends User {
         super(userEntity.getEmail(), userEntity.getPassword(), authorities);
         this.userId = userEntity.getUserId();
         this.userName = userEntity.getUserName();
-        this.profilePhoto = userEntity.getProfilePhoto();
+        this.profilePhoto = userEntity.getProfileUrl();
     }
 }

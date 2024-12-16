@@ -1,6 +1,5 @@
 package com.threeping.syncday.user.command.domain.aggregate;
 
-import com.threeping.syncday.user.config.UserEntityListener;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -8,7 +7,6 @@ import java.sql.Timestamp;
 
 @Table(name = "TBL_USER")
 @Entity
-@EntityListeners(UserEntityListener.class)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -33,19 +31,17 @@ public class UserEntity {
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(name = "profile_photo")
-    private String profilePhoto;
+    @Column(name = "profile_url")
+    private String profileUrl;
 
-    @Column(name = "join_year")
-    private Timestamp joinYear;
 
     @Column(name = "position")
     private String position;
 
-    @Column(name = "team_id", nullable = false)
+    @Column(name = "team_id")
     private Long teamId;
 
     @Column(name = "last_activated_at")
-    private Timestamp lastAccessTime;
+    private Timestamp lastActivatedAt;
 
  }

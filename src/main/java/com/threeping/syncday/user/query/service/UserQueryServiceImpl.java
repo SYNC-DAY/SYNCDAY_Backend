@@ -58,12 +58,11 @@ class UserQueryServiceImpl implements UserQueryService {
         userDTO.setUserName(user.getUserName());
         userDTO.setEmail(user.getEmail());
         userDTO.setPassword(user.getPassword());
-        userDTO.setProfilePhoto(user.getProfilePhoto());
+        userDTO.setProfileUrl(user.getProfileUrl());
         userDTO.setPhoneNumber(user.getPhoneNumber());
         userDTO.setPosition(user.getPosition());
-        userDTO.setJoinYear(timeStampToString(user.getJoinYear()));
         userDTO.setTeamId(user.getTeamId());
-        userDTO.setLastAccessTime(user.getLastAccessTime().toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME));
+        userDTO.setLastActivatedAt(user.getLastActivatedAt().toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME));
 
         return userDTO;
     }
@@ -81,12 +80,11 @@ class UserQueryServiceImpl implements UserQueryService {
         userDTO.setUserName(user.getUserName());
         userDTO.setEmail(user.getEmail());
         userDTO.setPassword(user.getPassword());
-        userDTO.setProfilePhoto(user.getProfilePhoto());
+        userDTO.setProfileUrl(user.getProfileUrl());
         userDTO.setPhoneNumber(user.getPhoneNumber());
         userDTO.setPosition(user.getPosition());
-        userDTO.setJoinYear(timeStampToString(user.getJoinYear()));
         userDTO.setTeamId(user.getTeamId());
-        userDTO.setLastAccessTime(user.getLastAccessTime().toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME));
+        userDTO.setLastActivatedAt(user.getLastActivatedAt().toLocalDateTime().format(DateTimeFormatter.ISO_DATE_TIME));
 
         return userDTO;
     }
