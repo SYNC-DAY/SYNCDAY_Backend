@@ -5,7 +5,6 @@ import com.threeping.syncday.user.command.aggregate.entity.UserEntity;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import lombok.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
