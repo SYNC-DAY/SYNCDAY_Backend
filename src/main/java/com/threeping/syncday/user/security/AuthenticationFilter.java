@@ -1,2 +1,4 @@
-package com.threeping.syncday.user.security;public class AuthenticationFilter {
+package com.threeping.syncday.user.security;
+
+public class AuthenticationFilter {
 }
