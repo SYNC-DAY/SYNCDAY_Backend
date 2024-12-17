@@ -2,64 +2,78 @@ package com.threeping.syncday.user.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.threeping.syncday.common.ResponseDTO;
+
 import com.threeping.syncday.user.command.aggregate.vo.CustomUser;
 import com.threeping.syncday.user.command.aggregate.vo.LoginRequestVO;
-
-import com.threeping.syncday.user.command.aggregate.vo.TokenPair;
 import com.threeping.syncday.user.command.application.service.AppUserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
-@RequiredArgsConstructor
 public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
-    private final AuthenticationManager authenticationManager;
+
     private final AppUserService appUserService;
-    private final JwtTokenProvider jwtTokenProvider;
+    private final Environment env;
     private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    public AuthenticationFilter(AuthenticationManager authenticationManager,
+                                AppUserService appUserService,
+                                Environment env,
+                                RedisTemplate<String, String> redisTemplate) {
+        super(authenticationManager);
+        this.appUserService = appUserService;
+        this.env = env;
+        this.redisTemplate = redisTemplate;
+    }
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException {
+        log.info("로그인 기반 인증 시작");
+        log.info("attemptAuthentication method request LocalPort: {}", request.getLocalPort());
         try {
-            LoginRequestVO creds = objectMapper.readValue(request.getInputStream(), LoginRequestVO.class);
-            log.info("Attempting authentication for user: {}", creds.email());
+            LoginRequestVO creds = new ObjectMapper().readValue(request.getInputStream(), LoginRequestVO.class);
+            log.info("attemptAuthentication method creds객체 정보 : {}", creds);
 
-            CustomUser user = (CustomUser) appUserService.loadUserByUsername(creds.email());
+            CustomUser user = (CustomUser) appUserService.loadUserByUsername(creds.getEmail());
 
-            if(!bCryptPasswordEncoder.matches(creds.password(), user.getPassword())) {
-                throw new BadCredentialsException("Wrong password");
-            }
+            // 인증 토큰 생성
             UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(user, creds.password(), new ArrayList<>());
+                    new UsernamePasswordAuthenticationToken(user, creds.getPassword(), new ArrayList<>());
+            log.info("attemptAuthentication authToken(성공 후 생성된 인증 토큰): {}", authToken);
 
-            return authenticationManager.authenticate(authToken);
+            // AuthenticationManager에 전달
+            Authentication auth = getAuthenticationManager().authenticate(authToken);
+            log.info("Authentication result: {}", auth);  // 이 로그가 찍히는지 확인
 
+            return auth;
         } catch (IOException e) {
-            throw new AuthenticationServiceException("Failed to process authentication request", e);
+            throw new AuthenticationServiceException("유저 인증 실패", e);
         }
     }
 
@@ -67,79 +81,89 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     protected void successfulAuthentication(HttpServletRequest request,
                                             HttpServletResponse response,
                                             FilterChain chain,
-                                            Authentication authResult) throws IOException {
-        CustomUser user = (CustomUser) authResult.getPrincipal();
+                                            Authentication authResult) throws IOException, ServletException {
 
-        // JwtTokenProvider를 사용하여 토큰 쌍 생성
-        TokenPair tokens = jwtTokenProvider.createTokenPair(user, authResult.getAuthorities());
+        log.info("successfulAuthentication! Principal 객체 : {}", authResult);
 
-        // Redis에 Refresh Token 저장
-        storeRefreshToken(user.getUserEmail(), tokens.refreshToken());
+        // 고유 UserType으로 다운캐스팅
+        CustomUser customUser = (CustomUser) authResult.getPrincipal();
 
-        // Response에 토큰 추가
-        addTokensToResponse(response, tokens);
+        // accessToken에는 회원 아이디, 회원 번호, 이름, 프로필 사진까지 넣기
+        String email = customUser.getUsername();
+        log.info("email: {}", email);
 
-        // 마지막 접속 시간 업데이트
-        updateLastAccessTime(user.getUsername());
+        Claims acessClaims = Jwts.claims().setSubject(email); // 회원 정보
+        acessClaims.put("userName", customUser.getUserName());
+        acessClaims.put("userId", customUser.getUserId());
+        acessClaims.put("profilePhoto", customUser.getProfileUrl());
 
-        // 성공 응답 전송
-        sendSuccessResponse(response);
-    }
+        // refreshToken에는 아이디만 넣기
+        Claims refreshClaims = Jwts.claims().setSubject(email);
+        List<String> roles = authResult.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()); // 권한 정보
+        acessClaims.put("auth", roles);
 
-    private void storeRefreshToken(String username, String refreshToken) {
-        String redisKey = "RT:" + username;
+        // 토큰 만료 시간 설정
+        long accessExpiration =
+                System.currentTimeMillis() + getExpirationTime(env.getProperty("token.access-expiration-time"));
+        long refreshExpiration =
+                System.currentTimeMillis() + getExpirationTime(env.getProperty("token.refresh-expiration-time"));
+
+        // AT 생성
+        String accessToken = Jwts.builder()
+                .setClaims(acessClaims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
+                .signWith(SignatureAlgorithm.HS512, env.getProperty("token.secret"))
+                .compact();
+
+        // RT 생성
+        String refreshToken = Jwts.builder()
+                .setClaims(refreshClaims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .signWith(SignatureAlgorithm.HS512, env.getProperty("token.secret"))
+                .compact();
+
+        // Ex ) Key: RT:abc@gmail.com, Value: RT정보, TTL(Data 만료시간)
         redisTemplate.opsForValue().set(
-                redisKey,
+                "RT:" + email,
                 refreshToken,
-                7, // refresh token 만료 기간 (일)
-                TimeUnit.DAYS
-        );
-    }
+                refreshExpiration,
+                TimeUnit.MILLISECONDS);
 
-    private void addTokensToResponse(HttpServletResponse response, TokenPair tokens) {
-        // Access Token을 Authorization 헤더에 추가
-        response.addHeader("Authorization", "Bearer " + tokens.accessToken());
-
-        // Refresh Token을 HttpOnly 쿠키로 설정
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", tokens.refreshToken())
-                .httpOnly(true)
-                .secure(false) // http (개발환경)
-//                .secure(true)  // HTTPS에서만 전송
-                .sameSite("Strict")
-                .path("/api") // cookie 사용 경로 지정
-                .maxAge(Duration.ofDays(7))  // refresh token과 동일한 만료 기간
+        // RT는 HttpOnly Cookie에 담기
+        ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true) // js를 통한 쿠키 완전히 차단, document.cookie로 쿠키 읽기/쓰기 불가, 오직 https 통신으로만 쿠키 전송 가능
+                .secure(false) // 개발 환경에선 http 통신이므로
+                .sameSite("Strict") // csrf 공격 방지
+                .path("/api")   // cookie 사용 가능 경로 지정
                 .build();
 
-        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
-    }
+        // at 헤더에 담기
+        response.addHeader("Authorization", "Bearer " + accessToken);
+        // Cookie를 헤더에 담아 전송
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
+        // user 상세 정보 조회
 
-    private void updateLastAccessTime(String username) {
-        try {
-            appUserService.updateLastActivatedAt(username);
-        } catch (Exception e) {
-            log.error("Failed to update last access time for user: {}", username, e);
-        }
-    }
+        // 마지막 로그인 시간 업데이트
+        appUserService.updateLastActivatedAt(email);
 
-    private void sendSuccessResponse(HttpServletResponse response) throws IOException {
         ResponseDTO<String> responseDTO = ResponseDTO.ok("로그인에 성공했습니다.");
 
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        objectMapper.writeValue(response.getWriter(), responseDTO);
+        //JSON 문자열로 변환
+        String JSON = new ObjectMapper().writeValueAsString(responseDTO);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(JSON);
     }
 
-//    @Override
-//    protected void unsuccessfulAuthentication(HttpServletRequest request,
-//                                              HttpServletResponse response,
-//                                              AuthenticationException failed) throws IOException {
-//        log.error("Authentication failed: {}", failed.getMessage());
-//
-//        ResponseDTO<String> responseDTO = ResponseDTO.error(failed.getMessage());
-//
-//        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-//        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-//        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-//        objectMapper.writeValue(response.getWriter(), responseDTO);
-//    }
+    private long getExpirationTime(String expirationTime) {
+        if (expirationTime == null) {
+            // 주어진 값이 없을 때 기본 시간 설정
+            return 3600000;
+        }
+        return Long.parseLong(expirationTime);
+    }
 }

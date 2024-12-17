@@ -1,167 +1,244 @@
 package com.threeping.syncday.user.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.threeping.syncday.common.ResponseDTO;
 import com.threeping.syncday.common.exception.CommonException;
 import com.threeping.syncday.common.exception.ErrorCode;
 import com.threeping.syncday.user.command.aggregate.vo.CustomUser;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import com.threeping.syncday.user.command.application.service.AppUserService;
+
+import com.threeping.syncday.user.security.util.JwtUtil;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.util.StringUtils;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
-@RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final RedisTokenManager redisTokenManager;
+    private final AppUserService appUserService;
     private final JwtUtil jwtUtil;
-    private final TokenRefreshService tokenRefreshService;
-    private final ObjectMapper objectMapper;
-    private static final String AUTHORIZATION_HEADER = "Authorization";
-    private static final String BEARER_PREFIX = "Bearer ";
+
+    private final RedisTemplate<String, String> redisTemplate;
+
+    private static final String REDIS_RT_PREFIX = "RT:";
+    private static final String REDIS_BL_PREFIX = "BL:";
+
+    public JwtFilter(AppUserService appUserService, JwtUtil jwtUtil, RedisTemplate<String, String> redisTemplate) {
+        this.appUserService = appUserService;
+        this.jwtUtil = jwtUtil;
+        this.redisTemplate = redisTemplate;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        log.info("현재 요청 path {}: " + path);
+        return path.startsWith("/api/user/login")
+                || path.startsWith("/api/user/regist")
+                || path.startsWith("/api/user/health")
+                // Swagger UI 관련 모든 경로 허용
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/swagger-resources")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/api/docs/login")
+                || path.startsWith("/sse/subscribe")
+                || path.startsWith("/swagger-custom-ui.html")
+                || path.startsWith("/ws")
+                // github webhook
+                || path.startsWith("/api/webhook/github");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
-            String accessToken = resolveToken(request);
-            if (!StringUtils.hasText(accessToken)) {
-                filterChain.doFilter(request, response);
-                return;
+            log.info("JWT 인증 필터 시작");
+            String accessToken = extractAccessToken(request);
+
+            if (accessToken != null) {
+                processAccessToken(accessToken, request, response);
+            } else {
+                processRefreshToken(request, response);
             }
 
-            try {
-                // First try to validate and use the access token
-                if (jwtUtil.validateToken(accessToken)) {
-                    setAuthenticationToContext(accessToken, request);
-                    filterChain.doFilter(request, response);
-                    return;
-                }
-            } catch (ExpiredJwtException expiredAccessEx) {
-                // Access token is expired, proceed to refresh token logic
-                log.debug("Access token expired, attempting refresh flow");
-                handleTokenRefresh(request, response, filterChain);
-                return;
-            } catch (JwtException e) {
-                log.error("Invalid access token", e);
-                handleAuthenticationFailure(response, ErrorCode.INVALID_TOKEN_ERROR);
-                return;
-            }
-
-            // If we get here, token was invalid but not expired
-            handleAuthenticationFailure(response, ErrorCode.INVALID_TOKEN_ERROR);
-
-        } catch (Exception e) {
-            log.error("Authentication process failed", e);
-            handleAuthenticationFailure(response, ErrorCode.LOGIN_FAILURE);
+            filterChain.doFilter(request, response);
+        } catch (CommonException e) {
+            handleAuthenticationException(response, e);
         }
     }
 
-    private void handleTokenRefresh(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-        String refreshToken = extractRefreshTokenFromCookie(request);
-        if (refreshToken == null) {
-            handleAuthenticationFailure(response, ErrorCode.NOT_FOUND_REFRESH_TOKEN);
+    private void processAccessToken(String accessToken, HttpServletRequest request, HttpServletResponse response) {
+        if (jwtUtil.isTokenExpired(accessToken)) {
+            log.info("만료된 AT 감지, 재발급 프로세스 시작");
+            handleExpiredAccessToken(accessToken, request, response);
             return;
         }
 
-        try {
-            // Validate refresh token
-            if (!jwtUtil.validateToken(refreshToken)) {
-                handleAuthenticationFailure(response, ErrorCode.INVALID_REFRESH_TOKEN);
-                return;
-            }
+        validateAccessToken(accessToken);
+        authenticateWithToken(accessToken);
+    }
 
-            // Verify refresh token in Redis
-            String username = jwtUtil.getUsernameFromToken(refreshToken);
-            String storedRefreshToken = redisTokenManager.getRefreshToken(username);
+    private void handleExpiredAccessToken(String expiredToken, HttpServletRequest request, HttpServletResponse response) {
+        // 1. 만료된 토큰 블랙리스트 처리
+        addToBlacklist(expiredToken);
 
-            if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-                handleAuthenticationFailure(response, ErrorCode.EXPIRED_REFRESH_TOKEN);
-                return;
-            }
+        // 2. RT로 새로운 AT 발급
+        String refreshToken = extractRefreshTokenFromCookie(request);
+        String userEmail = jwtUtil.getEmailFromToken(refreshToken);
 
-            // Get new token pair
-            var tokenPair = tokenRefreshService.refreshTokens(refreshToken);
+        // 3. RT 유효성 검증
+        validateRefreshToken(refreshToken, userEmail);
 
-            // Set new access token in response header
-            response.setHeader(AUTHORIZATION_HEADER, BEARER_PREFIX + tokenPair.accessToken());
+        // 4. 새로운 AT 발급 및 설정
+        String newAccessToken = jwtUtil.generateAccessToken(userEmail);
+        response.addHeader("Authorization", "Bearer " + newAccessToken);
 
-            // Update security context with new token
-            setAuthenticationToContext(tokenPair.accessToken(), request);
+        // 5. 새로운 AT로 인증 처리
+        authenticateWithToken(newAccessToken);
+    }
 
-            // Continue with the filter chain
-            filterChain.doFilter(request, response);
+    private void addToBlacklist(String token) {
+        String userEmail = jwtUtil.getEmailFromToken(token);
+        Long remainingTime = jwtUtil.getRemainingTime(token);
+        redisTemplate.opsForValue().set(
+                REDIS_BL_PREFIX + token,
+                userEmail,
+                remainingTime,
+                TimeUnit.MILLISECONDS
+        );
+    }
 
-        } catch (ExpiredJwtException e) {
-            log.error("Refresh token has expired", e);
-            handleAuthenticationFailure(response, ErrorCode.EXPIRED_REFRESH_TOKEN);
-        } catch (Exception e) {
-            log.error("Token refresh failed", e);
-            handleAuthenticationFailure(response, ErrorCode.TOKEN_GENERATION_ERROR);
+    private void validateAccessToken(String token) {
+        // 블랙리스트 체크
+        String blacklisted = redisTemplate.opsForValue().get(REDIS_BL_PREFIX + token);
+        if (blacklisted != null) {
+            log.info("블랙리스트에 등록된 토큰 감지");
+            throw new CommonException(ErrorCode.LOGOUT_ACCESS_TOKEN);
         }
     }
 
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(BEARER_PREFIX.length());
+    private void authenticateWithToken(String token) {
+        Claims claims = jwtUtil.parseClaims(token);
+        Authentication authentication = getAuthentication(claims);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private Authentication getAuthentication(Claims claims) {
+        String email = claims.getSubject();
+        List<String> roles = claims.get("auth", List.class);
+        List<SimpleGrantedAuthority> authorities = roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+
+        CustomUser user = (CustomUser) appUserService.loadUserByUsername(email);
+        return new UsernamePasswordAuthenticationToken(user, "", authorities);
+    }
+
+    private void processRefreshToken(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = extractRefreshTokenFromCookie(request);
+        String userEmail = jwtUtil.getEmailFromToken(refreshToken);
+
+        validateRefreshToken(refreshToken, userEmail);
+
+        TokenPair tokenPair = handleTokenIssue(refreshToken, userEmail);
+        setAuthenticationResponse(response, tokenPair);
+        authenticateWithToken(tokenPair.accessToken());
+    }
+
+    private TokenPair handleTokenIssue(String refreshToken, String userEmail) {
+        String newAccessToken = jwtUtil.generateAccessToken(userEmail);
+
+        return new TokenPair(newAccessToken, refreshToken);
+    }
+
+    private void validateRefreshToken(String refreshToken, String userEmail) {
+        String storedToken = redisTemplate.opsForValue().get(REDIS_RT_PREFIX + userEmail);
+
+        if (storedToken == null) {
+            log.info("저장된 RT 없음");
+            throw new CommonException(ErrorCode.EXPIRED_TOKEN_ERROR);
+        }
+
+        if (!storedToken.equals(refreshToken)) {
+            log.info("RT 불일치");
+            redisTemplate.delete(REDIS_RT_PREFIX + userEmail);
+            throw new CommonException(ErrorCode.ACCESS_DENIED);
+        }
+    }
+
+    private void setAuthenticationResponse(HttpServletResponse response, TokenPair tokenPair) {
+        response.addHeader("Authorization", "Bearer " + tokenPair.accessToken());
+    }
+
+    private String extractAccessToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
         }
         return null;
     }
 
     private String extractRefreshTokenFromCookie(HttpServletRequest request) {
+        log.info("Cookie에서 Rt 추출하는 method start");
+
         Cookie[] cookies = request.getCookies();
-        if (cookies != null) {
-            return Arrays.stream(cookies)
-                    .filter(cookie -> "refreshToken".equals(cookie.getName()))
-                    .map(Cookie::getValue)
-                    .findFirst()
-                    .orElse(null);
+
+        if(cookies == null) {
+            log.info("refreshToken을 담은 쿠키 목록이 없을 경우 예외 로그");
+            throw new CommonException(ErrorCode.NOT_FOUND_COOKIE);
         }
-        return null;
+
+        for(Cookie cookie : cookies) {
+            if(cookie.getName().equals("refreshToken")) {
+                log.info("refreshToken을 담은 쿠키 도착");
+                log.info("쿠키 이름: {}", cookie.getName());
+                log.info("쿠키 값: {}", cookie.getValue());
+                log.info("쿠키 maxAge: {}", cookie.getMaxAge());
+            }
+        }
+
+        String refreshToken = Arrays.stream(cookies)
+                .filter(cookie -> "refreshToken".equals(cookie.getName()))
+                .findFirst()
+                .map(Cookie::getValue)
+                .orElse(null);
+        if(refreshToken == null) {
+            log.info("cookie 목록에서 refreshToken이 없는 경우 예외 로그");
+            throw new CommonException(ErrorCode.NOT_FOUND_COOKIE);
+        }
+        return refreshToken;
     }
 
-    private void setAuthenticationToContext(String token, HttpServletRequest request) {
-        CustomUser user = jwtUtil.getUserFromToken(token);
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+    private void handleAuthenticationException(HttpServletResponse response, CommonException e) throws IOException {
+        response.setStatus(e.getErrorCode().getHttpStatus().value());
+        response.setContentType("application/json;charset=UTF-8");
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(response.getWriter(),
+                Map.of("error", e.getErrorCode().getMessage()));
     }
 
-    private void handleAuthenticationFailure(HttpServletResponse response,ErrorCode code) throws IOException {
-        SecurityContextHolder.clearContext();
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        response.getWriter().write(
-                objectMapper.writeValueAsString(ResponseDTO.fail(new CommonException(code)))
-        );
-    }
-
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        return path.startsWith("/api/auth/") || path.startsWith("/api/public/");
-    }
+    // 1. 불변(Immutable) 데이터 객체
+    // 2. 생성자, getter, equals(), hashCode(), toString() 자동 생성
+    // 3. 간결한 문법으로 DTO 생성 가능
+    private record TokenPair (String accessToken, String refreshToken) {}
 }
