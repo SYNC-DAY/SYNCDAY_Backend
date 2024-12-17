@@ -43,7 +43,8 @@ public enum ErrorCode {
     LOGOUT_ACCESS_TOKEN(400113, HttpStatus.BAD_REQUEST, "로그아웃된 accessToken입니다."),
     NOT_FOUND_REFRESH_TOKEN(40314, HttpStatus.UNAUTHORIZED, "refreshToken이 존재하지 않습니다."),
     NOT_FOUND_COOKIE(40315, HttpStatus.BAD_REQUEST, "쿠키가 없습니다."),
-
+    INVALID_REFRESH_TOKEN(40316,HttpStatus.BAD_REQUEST, "유효하지 않은 refresh token입니다."),
+    EXPIRED_REFRESH_TOKEN(401117, HttpStatus.UNAUTHORIZED, "만료된 refresh token 입니다."),
 
     //403
     FORBIDDEN_ROLE(40300, HttpStatus.FORBIDDEN, "권한이 존재하지 않습니다."),

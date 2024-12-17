@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,4 +33,14 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
 
+    @Override
+    public Boolean updateLastActivatedAt(String email) {
+        UserEntity existingUser = userRepository.findByEmail(email);
+        if (existingUser == null) {
+            throw new UsernameNotFoundException(email);
+        }
+        existingUser.setLastActivatedAt(LocalDateTime.now());
+        userRepository.save(existingUser);
+        return Boolean.TRUE;
+    }
 }
