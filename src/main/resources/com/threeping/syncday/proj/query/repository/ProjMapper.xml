@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.threeping.syncday.proj.query.repository.ProjMapper">
+
+    <resultMap id="projResultMap" type="com.threeping.syncday.proj.query.aggregate.dto.ProjDTO">
+        <id property="projId" column="proj_id"/>
+        <result property="projName" column="proj_name"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="vcsInstallationIndex" column="vcs_installation_index"/>
+    </resultMap>
+
+    <select id="selectAllProjs" resultMap="projResultMap">
+        SELECT
+            proj_id,
+            proj_name,
+            start_time,
+            end_time,
+            created_at,
+            updated_at,
+            vcs_installation_index
+        FROM
+            proj
+    </select>
+
+    <select id="selectProjById" parameterType="Long" resultMap="projResultMap">
+        SELECT
+            proj_id,
+            proj_name,
+            start_time,
+            end_time,
+            created_at,
+            updated_at,
+            vcs_installation_index
+        FROM
+            proj
+        WHERE
+            proj_id = #{projId}
+    </select>
+
+</mapper>
