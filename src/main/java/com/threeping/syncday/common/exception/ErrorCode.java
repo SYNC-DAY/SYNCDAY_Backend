@@ -64,6 +64,7 @@ public enum ErrorCode {
     // 06: 워크스페이스
 
     WORKSPACE_NOT_FOUND(4040600, HttpStatus.NOT_FOUND,"존재하지 않는 워크스페이스입니다."),
+    EMPTY_PROJ_LIST(4040601,HttpStatus.BAD_REQUEST ,"프로젝트 목록이 비어있습니다"),
 
     // 07: 카드보드
     CARDBOARD_NOT_FOUND(4040700,HttpStatus.NOT_FOUND, "카드보드가 존재하지 않습니다"),

@@ -1,4 +1,4 @@
-package com.threeping.syncday.projmember.query.respository;
+package com.threeping.syncday.projmember.query.repository;
 
 import com.threeping.syncday.projmember.query.aggregate.dto.ProjMemberDTO;
 import org.apache.ibatis.annotations.Mapper;

@@ -1,7 +1,7 @@
 package com.threeping.syncday.projmember.query.service;
 
 import com.threeping.syncday.projmember.query.aggregate.dto.ProjMemberDTO;
-import com.threeping.syncday.projmember.query.respository.ProjMemberMapper;
+import com.threeping.syncday.projmember.query.repository.ProjMemberMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

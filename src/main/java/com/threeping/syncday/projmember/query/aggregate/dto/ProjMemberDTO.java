@@ -1,6 +1,7 @@
 package com.threeping.syncday.projmember.query.aggregate.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.threeping.syncday.proj.query.aggregate.dto.ProjDTO;
 import lombok.Data;
 
 @Data
@@ -21,5 +22,6 @@ public class ProjMemberDTO {
     @JsonProperty("user_id")
     private Long userId;
 
-
+    @JsonProperty("proj")
+    ProjDTO proj;
 }

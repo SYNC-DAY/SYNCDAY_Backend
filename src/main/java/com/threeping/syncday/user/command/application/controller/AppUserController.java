@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -86,7 +87,11 @@ public class AppUserController {
 
         return ResponseDTO.ok("비밀번호가 변경되었습니다.");
     }
+    @GetMapping("/refresh")
+    public ResponseDTO<?> refresh(HttpServletRequest request){
 
+        return ResponseDTO.ok("accessToken 재발급");
+    }
     @Operation(summary = "로그아웃",
             description = "로그아웃을 요청 시 redis에 저장된 refreshToken을 삭제하고, 발급된 accessToken을 블랙리스트에 들록합니다.",
             responses = {

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.threeping.syncday.workspace.query.repository.WorkspaceMapper">
+
+    <resultMap id="WorkspaceResultMap" type="com.threeping.syncday.workspace.query.aggregate.dto.WorkspaceDTO">
+        <id property="workspaceId" column="workspace_id"/>
+        <result property="workspaceName" column="workspace_name"/>
+        <result property="vcsRepoUrl" column="vcs_repo_url"/>
+        <result property="projId" column="proj_id"/>
+    </resultMap>
+
+    <!-- 프로젝트 ID 목록으로 워크스페이스 조회 -->
+    <select id="selectWorkspacesByProjectIds" resultMap="WorkspaceResultMap">
+        SELECT
+        workspace_id,
+        workspace_name,
+        vcs_repo_url,
+        proj_id
+        FROM
+        TBL_WORKSPACE
+        WHERE
+        proj_id IN
+        <foreach item="projId" collection="projIds" open="(" separator="," close=")">
+            #{projId}
+        </foreach>
+    </select>
+</mapper>
